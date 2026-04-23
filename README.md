@@ -34,7 +34,7 @@ This agent is built using LangGraph, a stateful graph execution framework built 
 
 State Management: A typed `AgentState` dictionary persists across all graph nodes. It stores the full conversation history (via LangGraph's `add_messages` reducer), the detected intent, lead collection fields (`name`, `email`, `platform`), a flag for whether the lead was captured, and an `awaiting` field that tracks which piece of information the agent is currently collecting. This state is passed through every node and updated immutably.
 
-Graph Flow: Every user message enters the `detect_intent` node, which classifies intent as `casual_greeting`, `product_inquiry`, or `high_intent`. A conditional router then directs flow to the appropriate node: `greet`, `rag_response`, or `collect_lead_info`. The RAG node retrieves relevant content from a local JSON knowledge base using keyword matching. The lead collection node uses the `awaiting` state field to collect name → email → platform sequentially before calling `mock_lead_capture()`.
+Graph Flow: Every user message enters the `detect_intent` node, which classifies intent as `casual_greeting`, `product_inquiry`, or `high_intent`. A conditional router then directs flow to the appropriate node: `greet`, `rag_response`, or `collect_lead_info`. The RAG node retrieves relevant content from a local JSON knowledge base using keyword matching. The lead collection node uses the `awaiting` state field to collect name then email and then platform sequentially before calling `mock_lead_capture()`.
 
 
 
@@ -42,13 +42,13 @@ Graph Flow: Every user message enters the `detect_intent` node, which classifies
 
 To deploy this agent on WhatsApp:
 
-1. Register with Meta for Developers — create a WhatsApp Business App and get a phone number + access token.
-2. Set up a Webhook endpoint — build a FastAPI or Flask server with two routes:
-   - `GET /webhook` — for Meta's verification challenge (returns the hub challenge token).
-   - `POST /webhook` — receives incoming messages from WhatsApp users as JSON payloads.
-3. Session state management — use a dictionary (or Redis in production) keyed by the user's WhatsApp phone number to persist `AgentState` across webhook calls, since each message arrives as a separate HTTP request.
-4. Process and reply — on each `POST`, extract the user's message, look up their session state, call `app.invoke(state)`, and send the agent's response back via the WhatsApp Cloud API (`POST https://graph.facebook.com/v17.0/{phone_id}/messages`).
-5. Deploy — host the webhook server on Railway, Render, or AWS Lambda with a public HTTPS URL registered in the Meta dashboard.
+1. Register with Meta for Developers - create a WhatsApp Business App and get a phone number + access token.
+2. Set up a Webhook endpoint - build a FastAPI or Flask server with two routes:
+   a. GET /webhook - for Meta's verification challenge .
+   b. POST /webhook - receives incoming messages from WhatsApp users as JSON payloads.
+3. Session state management - use a dictionary (or Redis in production) keyed by the user's WhatsApp phone number to persist AgentState across webhook calls, since each message arrives as a separate HTTP request.
+4. Process and reply - on each POST, extract the user's message, look up their session state, call `app.invoke(state)`, and send the agent's response back via the WhatsApp Cloud API (`POST https://graph.facebook.com/v17.0/{phone_id}/messages`).
+5. Deploy - host the webhook server on Railway, Render, or AWS Lambda with a public HTTPS URL registered in the Meta dashboard.
 
 
 ## Link to the project demonstration video
